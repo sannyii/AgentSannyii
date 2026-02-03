@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Clean and normalize text instantly - remove extra spaces, fix line breaks, standardize quotes">
+  <title>Text Cleaner | AgentSannyii Utility</title>
+  
+  <style>
+    /* ─── CSS Variables - Aurora Theme ─── */
+    :root {
+      --void: #050508;
+      --void-lighter: #0a0a12;
+      --void-card: rgba(12, 12, 22, 0.85);
+      --void-input: rgba(255, 255, 255, 0.05);
+      
+      --aurora-cyan: #00f5ff;
+      --aurora-pink: #ff2a9d;
+      --aurora-purple: #bd34fe;
+      --aurora-blue: #4facfe;
+      --aurora-gold: #ffd700;
+      
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.85);
+      --text-tertiary: rgba(255, 255, 255, 0.55);
+      --text-dim: rgba(255, 255, 255, 0.3);
+      --text-muted: rgba(255, 255, 255, 0.15);
+      
+      --gradient-aurora: linear-gradient(135deg, var(--aurora-cyan) 0%, var(--aurora-purple) 50%, var(--aurora-pink) 100%);
+      --gradient-void: radial-gradient(ellipse at 50% 0%, rgba(0, 245, 255, 0.08) 0%, transparent 50%),
+                       radial-gradient(ellipse at 80% 80%, rgba(189, 52, 254, 0.06) 0%, transparent 50%);
+      
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-dramatic: cubic-bezier(0.16, 1, 0.3, 1);
+      
+      --font-display: "Space Grotesk", system-ui, -apple-system, sans-serif;
+      --font-body: "Manrope", system-ui, -apple-system, sans-serif;
+      
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2rem;
+      --space-2xl: 3rem;
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+    }
+    
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--void);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: var(--gradient-void);
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .aurora-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: rgba(0, 245, 255, 0.15);
+      top: -100px;
+      right: -100px;
+      animation: float 20s ease-in-out infinite;
+    }
+    
+    .orb-2 {
+      width: 300px;
+      height: 300px;
+      background: rgba(189, 52, 254, 0.12);
+      bottom: 10%;
+      left: -100px;
+      animation: float 25s ease-in-out infinite reverse;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(20px, -30px) scale(1.05); }
+    }
+    
+    .app-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: var(--space-xl);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: var(--space-xl);
+      border-bottom: 1px solid var(--text-muted);
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+    
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background: var(--gradient-aurora);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .brand-text {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+    
+    .brand-text span {
+      background: var(--gradient-aurora);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .tool-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xl);
+    }
+    
+    .tool-description {
+      color: var(--text-tertiary);
+      font-size: 0.95rem;
+      max-width: 600px;
+      line-height: 1.7;
+    }
+    
+    .card {
+      background: var(--void-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--text-muted);
+      border-radius: var(--radius-xl);
+      padding: var(--space-xl);
+      transition: all 0.4s var(--ease-dramatic);
+    }
+    
+    .card:hover {
+      border-color: rgba(0, 245, 255, 0.2);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--aurora-cyan);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .input-group {
+      margin-bottom: var(--space-lg);
+    }
+    
+    .input-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-sm);
+    }
+    
+    .textarea-field {
+      width: 100%;
+      min-height: 180px;
+      padding: var(--space-md) var(--space-lg);
+      background: var(--void-input);
+      border: 1px solid var(--text-muted);
+      border-radius: var(--radius-lg);
+      color: var(--text-primary);
+      font-family: "SF Mono", Monaco, monospace;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      transition: all 0.3s var(--ease-smooth);
+    }
+    
+    .textarea-field:focus {
+      border-color: var(--aurora-cyan);
+      box-shadow: 0 0 0 3px rgba(0, 245, 255, 0.1);
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      padding: var(--space-md) var(--space-xl);
+      border-radius: var(--radius-full);
+      font-family: var(--font-display);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.4s var(--ease-dramatic);
+      border: none;
+      text-decoration: none;
+    }
+    
+    .btn-primary {
+      background: var(--gradient-aurora);
+      color: var(--void);
+      box-shadow: 0 4px 20px rgba(0, 245, 255, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 245, 255, 0.4);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--text-muted);
+    }
+    
+    .btn-secondary:hover {
+      border-color: var(--aurora-cyan);
+      background: rgba(0, 245, 255, 0.05);
+    }
+    
+    .btn-danger {
+      background: rgba(255, 42, 157, 0.2);
+      color: var(--aurora-pink);
+      border: 1px solid rgba(255, 42, 157, 0.3);
+    }
+    
+    .btn-danger:hover {
+      background: rgba(255, 42, 157, 0.3);
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+    }
+    
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-md);
+    }
+    
+    .option-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--void-input);
+      border: 1px solid var(--text-muted);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .option-item:hover {
+      border-color: var(--aurora-cyan);
+    }
+    
+    .option-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--aurora-cyan);
+    }
+    
+    .option-item label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    
+    .stats-bar {
+      display: flex;
+      gap: var(--space-xl);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--void-input);
+      border-radius: var(--radius-md);
+      margin-top: var(--space-lg);
+    }
+    
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: var(--gradient-aurora);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    
+    .status-message {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md) var(--space-lg);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      animation: slideIn 0.3s var(--ease-dramatic);
+    }
+    
+    .status-success {
+      background: rgba(0, 245, 255, 0.1);
+      border: 1px solid rgba(0, 245, 255, 0.2);
+      color: var(--aurora-cyan);
+    }
+    
+    .status-error {
+      background: rgba(255, 42, 157, 0.1);
+      border: 1px solid rgba(255, 42, 157, 0.2);
+      color: var(--aurora-pink);
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .hidden { display: none !important; }
+    
+    .footer {
+      margin-top: auto;
+      padding-top: var(--space-2xl);
+      border-top: 1px solid var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+    }
+    
+    .footer-text {
+      font-size: 0.8125rem;
+      color: var(--text-dim);
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: var(--space-lg);
+    }
+    
+    .footer-link {
+      font-size: 0.8125rem;
+      color: var(--text-tertiary);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    .footer-link:hover {
+      color: var(--aurora-cyan);
+    }
+    
+    @media (max-width: 768px) {
+      .app-container { padding: var(--space-md); }
+      .header { flex-direction: column; gap: var(--space-md); text-align: center; }
+      .options-grid { grid-template-columns: 1fr; }
+      .stats-bar { flex-wrap: wrap; }
+      .footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="aurora-orb orb-1"></div>
+  <div class="aurora-orb orb-2"></div>
+  
+  <div class="app-container">
+    <header class="header">
+      <div class="brand">
+        <div class="brand-logo">🧹</div>
+        <div class="brand-text">Agent<span>Jarvis</span></div>
+      </div>
+      <h1 class="tool-title">Text Cleaner</h1>
+    </header>
+    
+    <main class="main-content">
+      <p class="tool-description">
+        Clean and normalize text instantly. Remove extra spaces, fix line breaks, 
+        standardize quotes, and more. Perfect for preparing content for publishing 
+        or data processing.
+      </p>
+      
+      <section class="card">
+        <h2 class="card-title">✏️ Input Text</h2>
+        <div class="input-group">
+          <textarea 
+            class="textarea-field" 
+            id="inputText"
+            placeholder="Paste your messy text here...
+
+Example:
+This   has   extra   spaces
+
+And weird  line    breaks&#10;&quot;Smart quotes&quot; and 'apostrophes'&#10;Mixed CASE and   Tabs"
+          ></textarea>
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn btn-primary" id="cleanBtn">
+            <span>✨ Clean Text</span>
+          </button>
+          <button class="btn btn-secondary" id="pasteBtn">
+            📋 Paste
+          </button>
+          <button class="btn btn-danger" id="clearBtn">
+            🗑️ Clear
+          </button>
+        </div>
+        
+        <div id="statusMessage" class="status-message hidden"></div>
+      </section>
+      
+      <section class="card">
+        <h2 class="card-title">⚙️ Cleaning Options</h2>
+        <div class="options-grid">
+          <div class="option-item">
+            <input type="checkbox" id="optTrim" checked>
+            <label for="optTrim">Trim whitespace</label>
+          </div>
+          <div class="option-item">
+            <input type="checkbox" id="optSpaces" checked>
+            <label for="optSpaces">Remove extra spaces</label>
+          </div>
+          <div class="option-item">
+            <input type="checkbox" id="optLines" checked>
+            <label for="optLines">Normalize line breaks</label>
+          </div>
+          <div class="option-item">
+            <input type="checkbox" id="optQuotes" checked>
+            <label for="optQuotes">Standardize quotes</label>
+          </div>
+          <div class="option-item">
+            <input type="checkbox" id="optCase">
+            <label for="optCase">Sentence case</label>
+          </div>
+          <div class="option-item">
+            <input type="checkbox" id="optLower">
+            <label for="optLower">lowercase</label>
+          </div>
+        </div>
+      </section>
+      
+      <section class="card">
+        <h2 class="card-title">✨ Cleaned Output</h2>
+        <div class="input-group">
+          <textarea 
+            class="textarea-field" 
+            id="outputText"
+            readonly
+            placeholder="Cleaned text will appear here..."
+          ></textarea>
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="copyBtn">
+            📋 Copy
+          </button>
+          <button class="btn btn-secondary" id="downloadBtn">
+            💾 Download
+          </button>
+        </div>
+        
+        <div class="stats-bar" id="statsBar" style="display: none;">
+          <div class="stat-item">
+            <span class="stat-value" id="charBefore">0</span>
+            <span class="stat-label">Before</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" id="charAfter">0</span>
+            <span class="stat-label">After</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" id="savedPercent">0%</span>
+            <span class="stat-label">Saved</span>
+          </div>
+        </div>
+      </section>
+    </main>
+    
+    <footer class="footer">
+      <div class="footer-text">
+        Generated by AgentSannyii • Works Offline • Single HTML File
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com" class="footer-link" target="_blank">GitHub</a>
+        <a href="#" class="footer-link">Report Issue</a>
+      </div>
+    </footer>
+  </div>
+  
+  <script>
+    // DOM Elements
+    const inputText = document.getElementById('inputText');
+    const outputText = document.getElementById('outputText');
+    const cleanBtn = document.getElementById('cleanBtn');
+    const pasteBtn = document.getElementById('pasteBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const statusMessage = document.getElementById('statusMessage');
+    const statsBar = document.getElementById('statsBar');
+    
+    // Options
+    const optTrim = document.getElementById('optTrim');
+    const optSpaces = document.getElementById('optSpaces');
+    const optLines = document.getElementById('optLines');
+    const optQuotes = document.getElementById('optQuotes');
+    const optCase = document.getElementById('optCase');
+    const optLower = document.getElementById('optLower');
+    
+    // Event Listeners
+    cleanBtn.addEventListener('click', cleanText);
+    pasteBtn.addEventListener('click', pasteFromClipboard);
+    clearBtn.addEventListener('click', clearAll);
+    copyBtn.addEventListener('click', copyOutput);
+    downloadBtn.addEventListener('click', downloadOutput);
+    
+    // Auto-clean on input (with debounce)
+    let debounceTimer;
+    inputText.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(cleanText, 500);
+    });
+    
+    function cleanText() {
+      let text = inputText.value;
+      
+      if (!text.trim()) {
+        showStatus('Please enter some text first', 'error');
+        return;
+      }
+      
+      const beforeLength = text.length;
+      
+      // Apply cleaning options
+      if (optTrim.checked) {
+        text = text.trim();
+      }
+      
+      if (optSpaces.checked) {
+        // Remove extra spaces (but preserve newlines)
+        text = text.replace(/[ \t]+/g, ' ');
+        // Remove spaces at line ends
+        text = text.replace(/ +$/gm, '');
+      }
+      
+      if (optLines.checked) {
+        // Normalize multiple line breaks to double newline
+        text = text.replace(/\n{3,}/g, '\n\n');
+      }
+      
+      if (optQuotes.checked) {
+        // Standardize quotes
+        text = text.replace(/[""]/g, '"');
+        text = text.replace(/['']/g, "'");
+      }
+      
+      if (optLower.checked) {
+        text = text.toLowerCase();
+      } else if (optCase.checked) {
+        // Sentence case
+        text = text.toLowerCase().replace(/(\.\s+\w)|(^\w)/g, match => match.toUpperCase());
+      }
+      
+      outputText.value = text;
+      
+      // Update stats
+      const afterLength = text.length;
+      const saved = beforeLength - afterLength;
+      const savedPercent = beforeLength > 0 ? Math.round((saved / beforeLength) * 100) : 0;
+      
+      document.getElementById('charBefore').textContent = beforeLength.toLocaleString();
+      document.getElementById('charAfter').textContent = afterLength.toLocaleString();
+      document.getElementById('savedPercent').textContent = savedPercent + '%';
+      statsBar.style.display = 'flex';
+      
+      showStatus('Text cleaned successfully!', 'success');
+    }
+    
+    async function pasteFromClipboard() {
+      try {
+        const text = await navigator.clipboard.readText();
+        inputText.value = text;
+        showStatus('Pasted from clipboard', 'success');
+        cleanText();
+      } catch (err) {
+        showStatus('Failed to read clipboard', 'error');
+      }
+    }
+    
+    function clearAll() {
+      inputText.value = '';
+      outputText.value = '';
+      statsBar.style.display = 'none';
+      hideStatus();
+    }
+    
+    async function copyOutput() {
+      if (!outputText.value) {
+        showStatus('Nothing to copy', 'error');
+        return;
+      }
+      
+      try {
+        await navigator.clipboard.writeText(outputText.value);
+        showStatus('Copied to clipboard!', 'success');
+      } catch (err) {
+        showStatus('Failed to copy', 'error');
+      }
+    }
+    
+    function downloadOutput() {
+      if (!outputText.value) {
+        showStatus('Nothing to download', 'error');
+        return;
+      }
+      
+      const blob = new Blob([outputText.value], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cleaned-text-${Date.now()}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      showStatus('Download started', 'success');
+    }
+    
+    function showStatus(message, type) {
+      statusMessage.textContent = message;
+      statusMessage.className = `status-message status-${type}`;
+      if (type === 'success') {
+        setTimeout(hideStatus, 3000);
+      }
+    }
+    
+    function hideStatus() {
+      statusMessage.classList.add('hidden');
+    }
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        cleanText();
+      }
+      if (e.key === 'Escape') {
+        clearAll();
+      }
+    });
+    
+    console.log('🧹 Text Cleaner initialized');
+    console.log('Shortcuts: Ctrl+Enter = Clean, Escape = Clear');
+  </script>
+</body>
+</html>

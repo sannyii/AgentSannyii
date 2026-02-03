@@ -1,0 +1,61 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-02-03",
+  "tools": [
+    {
+      "id": "text-cleaner",
+      "title": "Text Cleaner",
+      "description": "Clean and normalize text instantly. Remove extra spaces, fix line breaks, standardize quotes, and convert case.",
+      "category": "Text",
+      "tags": ["text", "clean", "format", "normalize"],
+      "version": "1.0.0",
+      "author": "AgentSannyii Team",
+      "authorUrl": "https://agentjarvis.dev",
+      "runtime": "offline",
+      "status": "live",
+      "file": "text-cleaner.html",
+      "icon": "🧹",
+      "color": "#4facfe",
+      "createdAt": "2025-02-03",
+      "updatedAt": "2025-02-03",
+      "featured": true
+    }
+  ],
+  "categories": [
+    {
+      "id": "text",
+      "name": "Text",
+      "icon": "📝",
+      "color": "#4facfe",
+      "description": "Text processing, cleaning, and transformation utilities"
+    },
+    {
+      "id": "image",
+      "name": "Image",
+      "icon": "🎨",
+      "color": "#00f5ff",
+      "description": "Image editing, conversion, and manipulation tools"
+    },
+    {
+      "id": "video",
+      "name": "Video",
+      "icon": "🎬",
+      "color": "#ff2a9d",
+      "description": "Video processing, conversion, and editing utilities"
+    },
+    {
+      "id": "file",
+      "name": "File",
+      "icon": "📁",
+      "color": "#bd34fe",
+      "description": "File management, conversion, and organization tools"
+    },
+    {
+      "id": "productivity",
+      "name": "Productivity",
+      "icon": "⚡",
+      "color": "#ffd700",
+      "description": "Tools to boost your productivity and workflow"
+    }
+  ]
+}
