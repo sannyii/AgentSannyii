@@ -1,4 +1,4 @@
-import { PublicTool, UserTool, Tool, toolCategories, getCategoryById } from "@/data/tools";
+import { PublicTool, UserTool, Tool, toolCategories, getCategoryById, publicTools } from "@/data/tools";
 
 // ============================================================================
 // Tool Loading Service
@@ -6,36 +6,10 @@ import { PublicTool, UserTool, Tool, toolCategories, getCategoryById } from "@/d
 // ============================================================================
 
 /**
- * Load public tool metadata from meta.json
+ * Load public tool metadata from local index
  */
 export async function loadPublicToolsMeta(): Promise<PublicTool[]> {
-  try {
-    const response = await fetch("/tools/meta.json");
-    if (!response.ok) {
-      throw new Error("Failed to load tools metadata");
-    }
-    const data = await response.json();
-    return data.tools.map((tool: PublicTool) => ({ ...tool, type: "public" as const }));
-  } catch (error) {
-    console.error("Error loading public tools:", error);
-    return [];
-  }
-}
-
-/**
- * Load a single public tool's HTML content
- */
-export async function loadPublicToolHtml(tool: PublicTool): Promise<string> {
-  try {
-    const response = await fetch(`/tools/${tool.file}`);
-    if (!response.ok) {
-      throw new Error(`Failed to load tool: ${tool.file}`);
-    }
-    return await response.text();
-  } catch (error) {
-    console.error("Error loading tool HTML:", error);
-    throw error;
-  }
+  return publicTools;
 }
 
 /**
@@ -64,7 +38,12 @@ export async function getToolById(id: string): Promise<Tool | null> {
  */
 export async function loadToolHtml(tool: Tool): Promise<string> {
   if (tool.type === "public") {
-    return loadPublicToolHtml(tool);
+    // For public tools, fetch from the public directory
+    const response = await fetch(`/tools/${tool.file}`);
+    if (!response.ok) {
+      throw new Error(`Failed to load tool HTML: ${tool.file}`);
+    }
+    return response.text();
   } else {
     // User tool - HTML is stored in the object
     return tool.htmlContent;

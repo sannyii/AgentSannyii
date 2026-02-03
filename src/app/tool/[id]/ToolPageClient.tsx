@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { Navigation } from "@/components/Navigation";
 import { ToolRunner } from "@/components/ToolRunner";
 import {
-  getToolById,
-  loadToolHtml,
   recordToolView,
   recordToolDownload,
   getCategoryColor,
@@ -17,56 +14,25 @@ import {
 import { Tool } from "@/data/tools";
 import { FloatingOrbs, ParticleField } from "@/components/backgrounds";
 
-export default function ToolPage() {
-  const params = useParams();
-  const router = useRouter();
-  const toolId = params.id as string;
+interface ToolPageClientProps {
+  tool: Tool;
+  htmlContent: string;
+}
 
-  const [tool, setTool] = useState<Tool | null>(null);
-  const [htmlContent, setHtmlContent] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function ToolPageClient({ tool, htmlContent }: ToolPageClientProps) {
+  const router = useRouter();
 
   useEffect(() => {
-    async function loadTool() {
-      if (!toolId) return;
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        // Load tool metadata
-        const toolData = await getToolById(toolId);
-        if (!toolData) {
-          setError("工具未找到");
-          setIsLoading(false);
-          return;
-        }
-
-        setTool(toolData);
-        recordToolView(toolId);
-
-        // Load HTML content
-        const html = await loadToolHtml(toolData);
-        setHtmlContent(html);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "加载工具失败");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadTool();
-  }, [toolId]);
+    recordToolView(tool.id);
+  }, [tool.id]);
 
   const handleBack = () => {
     router.push("/");
   };
 
   const handleDownload = () => {
-    if (!htmlContent || !tool) return;
+    if (!htmlContent) return;
 
-    // Create blob and download
     const blob = new Blob([htmlContent], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -77,28 +43,15 @@ export default function ToolPage() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    // Record download
     recordToolDownload(tool.id);
   };
 
-  if (isLoading) {
-    return <ToolLoadingState />;
-  }
-
-  if (error || !tool) {
-    return <ToolErrorState error={error || "工具未找到"} onBack={handleBack} />;
+  if (!htmlContent) {
+    return <ToolErrorState error="Tool content not found" onBack={handleBack} />;
   }
 
   const categoryColor = getCategoryColor(tool.category);
   const categoryIcon = getCategoryIcon(tool.category);
-
-  const getRuntimeLabel = (runtime: string) => {
-    return runtime === "offline" ? "离线" : "在线";
-  };
-
-  const getStatusLabel = (status: string) => {
-    return status === "live" ? "可用" : "开发中";
-  };
 
   return (
     <>
@@ -124,7 +77,7 @@ export default function ToolPage() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 12H5M12 19l-7-7 7-7" />
               </svg>
-              <span>返回工具列表</span>
+              <span>Back to Gallery</span>
             </button>
           </motion.nav>
 
@@ -172,28 +125,28 @@ export default function ToolPage() {
               {/* Meta Info */}
               <div className="tool-meta">
                 <div className="tool-meta-item">
-                  <span className="meta-label">运行模式</span>
+                  <span className="meta-label">Runtime</span>
                   <span className={`meta-value runtime-${tool.runtime}`}>
-                    {tool.runtime === "offline" ? "🟢 离线" : "🌐 在线"}
+                    {tool.runtime === "offline" ? "🟢 Offline" : "🌐 Online"}
                   </span>
                 </div>
 
                 <div className="tool-meta-item">
-                  <span className="meta-label">版本</span>
+                  <span className="meta-label">Version</span>
                   <span className="meta-value">v{tool.version}</span>
                 </div>
 
                 {tool.type === "public" && "author" in tool && (
                   <div className="tool-meta-item">
-                    <span className="meta-label">作者</span>
+                    <span className="meta-label">Author</span>
                     <span className="meta-value">{tool.author}</span>
                   </div>
                 )}
 
                 <div className="tool-meta-item">
-                  <span className="meta-label">状态</span>
+                  <span className="meta-label">Status</span>
                   <span className={`meta-value status-${tool.status}`}>
-                    {tool.status === "live" ? "✨ 可用" : "🚧 开发中"}
+                    {tool.status === "live" ? "✨ Live" : "🚧 Draft"}
                   </span>
                 </div>
               </div>
@@ -224,7 +177,7 @@ export default function ToolPage() {
           >
             <h2 className="section-title">
               <span className="title-icon">▶</span>
-              运行工具
+              Run Tool
             </h2>
             
             <ToolRunner htmlContent={htmlContent} title={tool.title} />
@@ -240,40 +193,40 @@ export default function ToolPage() {
             <div className="info-grid">
               {/* How to use */}
               <div className="info-card">
-                <h3 className="info-card-title">📖 使用说明</h3>
+                <h3 className="info-card-title">📖 How to Use</h3>
                 <ul className="info-list">
-                  <li>工具直接在浏览器中运行</li>
-                  <li>所有处理都在本地完成（离线工具）</li>
-                  <li>你的数据不会离开设备</li>
-                  <li>下载 HTML 随时随地使用</li>
+                  <li>The tool runs directly in your browser</li>
+                  <li>All processing happens locally (offline tools)</li>
+                  <li>Your data never leaves your device</li>
+                  <li>Download the HTML to use anytime, anywhere</li>
                 </ul>
               </div>
 
               {/* Features */}
               <div className="info-card">
-                <h3 className="info-card-title">✨ 功能特性</h3>
+                <h3 className="info-card-title">✨ Features</h3>
                 <ul className="info-list">
-                  <li>单文件 HTML 工具</li>
-                  <li>无需安装</li>
-                  <li>首次加载后可离线使用</li>
-                  <li>适配所有设备的响应式设计</li>
-                  <li>极光梦境 UI 主题</li>
+                  <li>Single-file HTML utility</li>
+                  <li>No installation required</li>
+                  <li>Works offline after first load</li>
+                  <li>Responsive design for all devices</li>
+                  <li>Aurora Dream UI theme</li>
                 </ul>
               </div>
 
               {/* Download Info */}
               <div className="info-card highlight">
-                <h3 className="info-card-title">💾 下载</h3>
+                <h3 className="info-card-title">💾 Download</h3>
                 <p className="info-text">
-                  将此工具下载为独立的 HTML 文件。
-                  无需网络，任何浏览器都能打开使用！
+                  Download this tool as a standalone HTML file. 
+                  Open it in any browser, even without internet!
                 </p>
                 <button 
                   onClick={handleDownload}
                   className="btn btn-primary" 
                   style={{ marginTop: "1rem" }}
                 >
-                  下载 HTML
+                  Download HTML
                 </button>
               </div>
             </div>
@@ -289,7 +242,7 @@ export default function ToolPage() {
               Agent<span>Sannyii</span>
             </div>
             <div className="footer-copy">
-              <span>单文件 AI 工具</span>
+              <span>Single-file AI utilities</span>
               <span className="footer-divider" />
               <span>© 2025</span>
             </div>
@@ -548,31 +501,6 @@ export default function ToolPage() {
           line-height: 1.7;
         }
 
-        .btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.875rem 1.75rem;
-          border-radius: 100px;
-          font-family: var(--font-display);
-          font-size: 0.9375rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.4s ease;
-          border: none;
-          text-decoration: none;
-        }
-
-        .btn-primary {
-          background: var(--gradient-aurora);
-          color: var(--void);
-        }
-
-        .btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 30px rgba(0, 245, 255, 0.3);
-        }
-
         @media (max-width: 1024px) {
           .tool-header-content {
             flex-direction: column;
@@ -611,62 +539,6 @@ export default function ToolPage() {
   );
 }
 
-// Loading State Component
-function ToolLoadingState() {
-  return (
-    <div className="tool-page loading">
-      <div className="container">
-        <div className="loading-content">
-          <div className="loading-spinner-large" />
-          <h2>加载工具...</h2>
-          <p>正在准备你的工具</p>
-        </div>
-      </div>
-
-      <style jsx>{`
-        .tool-page.loading {
-          padding-top: 200px;
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .loading-content {
-          text-align: center;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 1.5rem;
-        }
-
-        .loading-spinner-large {
-          width: 60px;
-          height: 60px;
-          border: 4px solid var(--text-muted);
-          border-top-color: var(--aurora-cyan);
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        .loading-content h2 {
-          font-family: var(--font-display);
-          font-size: 1.5rem;
-          color: var(--text-secondary);
-        }
-
-        .loading-content p {
-          color: var(--text-tertiary);
-        }
-      `}</style>
-    </div>
-  );
-}
-
 // Error State Component
 function ToolErrorState({ error, onBack }: { error: string; onBack: () => void }) {
   return (
@@ -674,10 +546,10 @@ function ToolErrorState({ error, onBack }: { error: string; onBack: () => void }
       <div className="container">
         <div className="error-content">
           <div className="error-icon-large">⚠️</div>
-          <h1>工具未找到</h1>
+          <h1>Tool Not Found</h1>
           <p>{error}</p>
           <button onClick={onBack} className="btn btn-primary">
-            返回工具列表
+            Back to Gallery
           </button>
         </div>
       </div>

@@ -25,7 +25,7 @@ export interface BaseTool {
 
 /**
  * Official public tool from the code repository
- * Stored as standalone HTML files in /public/tools/
+ * Stored as standalone HTML files in /src/content/tools/html/
  */
 export interface PublicTool extends BaseTool {
   type: "public";
@@ -98,67 +98,59 @@ export const publicTools: PublicTool[] = [
     updatedAt: "2025-02-03",
     featured: true,
   },
-];
-
-// ============================================================================
-// Placeholder tools for the gallery (will be replaced with real data)
-// ============================================================================
-
-export const toolCards: Array<{
-  id: string;
-  title: string;
-  description: string;
-  category: ToolCategory;
-  runtime: string;
-  status: ToolStatus;
-}> = [
   {
-    id: "text-cleaner",
-    title: "Text Cleaner",
-    description: "Remove extra spaces, fix line breaks, standardize quotes, and convert case.",
-    category: "Text",
-    runtime: "Offline",
-    status: "live",
-  },
-  {
-    id: "image-slicer",
-    title: "Image Slice Lab",
-    description: "Cut sprites or social images into precise tiles with live previews.",
+    id: "gif-cropper",
+    type: "public",
+    title: "GIF 裁切工具",
+    description: "裁切 GIF 动画并导出新文件，支持比例锁定与精确数值控制。",
     category: "Image",
-    runtime: "Offline",
-    status: "draft",
+    tags: ["gif", "crop", "animation", "export"],
+    icon: "🎞️",
+    color: "#00f5ff",
+    runtime: "offline",
+    status: "live",
+    version: "1.0.0",
+    file: "gif-cropper.html",
+    author: "AgentSannyii Team",
+    createdAt: "2026-02-03",
+    updatedAt: "2026-02-03",
+    featured: true,
   },
   {
-    id: "gif-splitter",
-    title: "GIF Splitter",
-    description: "Extract frames or segments from animated GIFs in one click.",
-    category: "Video",
-    runtime: "Offline",
-    status: "draft",
+    id: "image-cropper",
+    type: "public",
+    title: "图片裁切工具",
+    description: "自定义输出尺寸和比例，拖拽裁切区域实时预览。",
+    category: "Image",
+    tags: ["image", "crop", "resize", "ratio"],
+    icon: "🖼️",
+    color: "#00f5ff",
+    runtime: "offline",
+    status: "live",
+    version: "1.0.0",
+    file: "image-cropper.html",
+    author: "AgentSannyii Team",
+    createdAt: "2026-02-03",
+    updatedAt: "2026-02-03",
+    featured: true,
   },
   {
-    id: "format-converter",
-    title: "Format Converter",
-    description: "Batch convert images and docs between modern formats.",
-    category: "File",
-    runtime: "Offline",
-    status: "draft",
-  },
-  {
-    id: "video-catcher",
-    title: "Video Catcher",
-    description: "Download, trim, and repackage videos into share-ready clips.",
-    category: "Video",
-    runtime: "Online",
-    status: "draft",
-  },
-  {
-    id: "prompt-card",
-    title: "Prompt Card Builder",
-    description: "Generate prompt templates as printable HTML cards.",
-    category: "Productivity",
-    runtime: "Offline",
-    status: "draft",
+    id: "macos-icon-generator",
+    type: "public",
+    title: "macOS App Icon Generator",
+    description: "上传正方形图片，一键生成多尺寸 macOS 应用图标并打包下载。",
+    category: "Image",
+    tags: ["macos", "icon", "generator", "zip"],
+    icon: "🍎",
+    color: "#00f5ff",
+    runtime: "online",
+    status: "live",
+    version: "1.0.0",
+    file: "macos-icon-generator.html",
+    author: "AgentSannyii Team",
+    createdAt: "2026-02-03",
+    updatedAt: "2026-02-03",
+    featured: false,
   },
 ];
 
@@ -239,8 +231,8 @@ export function isOfflineTool(tool: Tool): boolean {
 }
 
 /**
- * Get tool file path (for public tools)
+ * Get tool source path (server-only usage)
  */
 export function getToolPath(tool: PublicTool): string {
-  return `/tools/${tool.file}`;
+  return `src/content/tools/html/${tool.file}`;
 }

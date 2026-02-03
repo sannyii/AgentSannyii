@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="图片裁切工具 - 自定义输出尺寸和比例"> 
+  <title>图片裁切工具 | AgentSannyii Utility</title>
+
+  <style>
+    :root {
+      --void: #050508;
+      --void-lighter: #0a0a12;
+      --void-card: rgba(12, 12, 22, 0.85);
+      --void-input: rgba(255, 255, 255, 0.05);
+
+      --aurora-cyan: #00f5ff;
+      --aurora-pink: #ff2a9d;
+      --aurora-purple: #bd34fe;
+      --aurora-blue: #4facfe;
+      --aurora-violet: #a855f7;
+      --aurora-gold: #ffd700;
+
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.85);
+      --text-tertiary: rgba(255, 255, 255, 0.55);
+      --text-dim: rgba(255, 255, 255, 0.3);
+      --text-muted: rgba(255, 255, 255, 0.15);
+
+      --gradient-aurora: linear-gradient(135deg, var(--aurora-cyan) 0%, var(--aurora-purple) 50%, var(--aurora-pink) 100%);
+      --gradient-void: radial-gradient(ellipse at 50% 0%, rgba(0, 245, 255, 0.08) 0%, transparent 50%),
+                       radial-gradient(ellipse at 80% 80%, rgba(189, 52, 254, 0.06) 0%, transparent 50%);
+
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-dramatic: cubic-bezier(0.16, 1, 0.3, 1);
+
+      --font-display: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-body: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2rem;
+      --space-2xl: 3rem;
+      --space-3xl: 4rem;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--void);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: var(--gradient-void);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .aurora-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .orb-1 {
+      width: 380px;
+      height: 380px;
+      background: rgba(0, 245, 255, 0.15);
+      top: -80px;
+      right: -120px;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .orb-2 {
+      width: 320px;
+      height: 320px;
+      background: rgba(189, 52, 254, 0.12);
+      bottom: 10%;
+      left: -120px;
+      animation: float 25s ease-in-out infinite reverse;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(20px, -30px) scale(1.05); }
+    }
+
+    .app-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: var(--space-xl);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: var(--space-xl);
+      border-bottom: 1px solid var(--text-muted);
+      margin-bottom: var(--space-2xl);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background: var(--gradient-aurora);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .brand-text {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text span {
+      background: var(--gradient-aurora);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tool-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xl);
+    }
+
+    .tool-description {
+      color: var(--text-tertiary);
+      font-size: 0.95rem;
+      max-width: 700px;
+      line-height: 1.7;
+    }
+
+    .card {
+      background: var(--void-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--text-muted);
+      border-radius: var(--radius-xl);
+      padding: var(--space-xl);
+      transition: all 0.4s var(--ease-dramatic);
+    }
+
+    .card:hover {
+      border-color: rgba(0, 245, 255, 0.2);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--aurora-cyan);
+      margin-bottom: var(--space-lg);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      padding: var(--space-md) var(--space-xl);
+      border-radius: var(--radius-full);
+      font-family: var(--font-display);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.4s var(--ease-dramatic);
+      border: none;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary {
+      background: var(--gradient-aurora);
+      color: var(--void);
+      box-shadow: 0 4px 20px rgba(0, 245, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 245, 255, 0.4);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--text-muted);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--aurora-cyan);
+      background: rgba(0, 245, 255, 0.05);
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--text-muted);
+      border-radius: var(--radius-xl);
+      padding: var(--space-3xl);
+      text-align: center;
+      transition: all 0.3s var(--ease-smooth);
+      cursor: pointer;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.drag-over {
+      border-color: var(--aurora-cyan);
+      background: rgba(0, 245, 255, 0.05);
+    }
+
+    .drop-zone-icon {
+      font-size: 3rem;
+      margin-bottom: var(--space-md);
+      opacity: 0.6;
+    }
+
+    .drop-zone-text {
+      color: var(--text-tertiary);
+      font-size: 0.9375rem;
+    }
+
+    .drop-zone-hint {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-top: var(--space-sm);
+    }
+
+    .footer {
+      margin-top: auto;
+      padding-top: var(--space-2xl);
+      border-top: 1px solid var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+    }
+
+    .footer-text {
+      font-size: 0.8125rem;
+      color: var(--text-dim);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: var(--space-lg);
+    }
+
+    .footer-link {
+      font-size: 0.8125rem;
+      color: var(--text-tertiary);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .footer-link:hover {
+      color: var(--aurora-cyan);
+    }
+
+    /* ─── Tool-specific styles ─── */
+    .ratio-settings {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .ratio-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+    }
+
+    .ratio-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--text-secondary);
+    }
+
+    .lock-ratio {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .lock-ratio input {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .lock-ratio label {
+      font-size: 0.85rem;
+      color: var(--text-tertiary);
+      cursor: pointer;
+    }
+
+    .ratio-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    .preset-btn {
+      padding: 0.4rem 0.8rem;
+      border: 1px solid var(--text-muted);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.85rem;
+    }
+
+    .preset-btn:hover,
+    .preset-btn.active {
+      border-color: var(--aurora-cyan);
+      background: rgba(0, 245, 255, 0.12);
+      color: var(--aurora-cyan);
+    }
+
+    .custom-ratio {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+
+    .ratio-input-group {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    .ratio-input {
+      width: 110px;
+      padding: 0.5rem 0.75rem;
+      background: var(--void-input);
+      border: 1px solid var(--text-muted);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+
+    .ratio-input:focus {
+      outline: none;
+      border-color: var(--aurora-cyan);
+      box-shadow: 0 0 0 2px rgba(0, 245, 255, 0.1);
+    }
+
+    .ratio-unit {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+
+    .ratio-separator {
+      color: var(--text-dim);
+    }
+
+    .btn-apply {
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--text-muted);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.85rem;
+    }
+
+    .btn-apply:hover {
+      border-color: var(--aurora-cyan);
+      color: var(--aurora-cyan);
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .editor-container {
+      display: none;
+      gap: var(--space-xl);
+    }
+
+    .editor-container.active {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .crop-section {
+      flex: 1;
+      min-width: 300px;
+      max-width: 720px;
+    }
+
+    .preview-section {
+      width: 220px;
+    }
+
+    .section-title {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-bottom: var(--space-sm);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      background: var(--void);
+      border: 1px solid var(--text-muted);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md);
+      overflow: auto;
+      max-height: 65vh;
+    }
+
+    #mainCanvas {
+      display: block;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    .crop-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .crop-box {
+      position: absolute;
+      border: 2px solid var(--aurora-cyan);
+      background: rgba(0, 245, 255, 0.15);
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+      pointer-events: auto;
+    }
+
+    .crop-box .grid-vertical-1,
+    .crop-box .grid-vertical-2 {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .crop-box .grid-vertical-1 { left: 33.33%; }
+    .crop-box .grid-vertical-2 { left: 66.66%; }
+
+    .resize-handle {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: var(--aurora-cyan);
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+
+    .handle-nw { top: -6px; left: -6px; cursor: nw-resize; }
+    .handle-ne { top: -6px; right: -6px; cursor: ne-resize; }
+    .handle-sw { bottom: -6px; left: -6px; cursor: sw-resize; }
+    .handle-se { bottom: -6px; right: -6px; cursor: se-resize; }
+
+    .zoom-controls {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-top: var(--space-md);
+      color: var(--text-tertiary);
+    }
+
+    .zoom-slider {
+      flex: 1;
+    }
+
+    .controls {
+      display: flex;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+      margin-top: var(--space-md);
+    }
+
+    .preview-canvas-wrapper {
+      background: var(--void);
+      border: 1px solid var(--text-muted);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md);
+      text-align: center;
+    }
+
+    #previewCanvas {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .info-panel {
+      margin-top: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      font-size: 0.85rem;
+      color: var(--text-tertiary);
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border-bottom: 1px solid var(--text-muted);
+      padding-bottom: var(--space-xs);
+    }
+
+    .info-label { color: var(--text-dim); }
+    .info-value { color: var(--text-secondary); }
+
+    @media (max-width: 768px) {
+      .preview-section {
+        width: 100%;
+      }
+
+      .preview-canvas-wrapper {
+        max-width: 240px;
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="aurora-orb orb-1"></div>
+  <div class="aurora-orb orb-2"></div>
+
+  <div class="app-container">
+    <header class="header">
+      <div class="brand">
+        <div class="brand-logo">📷</div>
+        <div class="brand-text">Agent<span>Sannyii</span></div>
+      </div>
+      <h1 class="tool-title">图片裁切工具</h1>
+    </header>
+
+    <main class="main-content">
+      <p class="tool-description">自定义输出尺寸和比例，拖拽裁切区域实时预览。</p>
+
+      <section class="card">
+        <h2 class="card-title">⚙️ 输出尺寸设置</h2>
+        <div class="ratio-settings">
+          <div class="ratio-header">
+            <span class="ratio-title">输出尺寸设置</span>
+            <div class="lock-ratio">
+              <input type="checkbox" id="lockRatio" checked>
+              <label for="lockRatio">锁定比例</label>
+            </div>
+          </div>
+          <div class="ratio-presets">
+            <button class="preset-btn" data-width="1284" data-height="2778">iPhone 14 Pro Max</button>
+            <button class="preset-btn" data-width="1170" data-height="2532">iPhone 14</button>
+            <button class="preset-btn" data-width="1080" data-height="1920">1080P 竖屏</button>
+            <button class="preset-btn" data-width="1920" data-height="1080">1080P 横屏</button>
+            <button class="preset-btn" data-width="1080" data-height="1080">1:1 正方形</button>
+            <button class="preset-btn" data-width="800" data-height="600">4:3</button>
+            <button class="preset-btn" data-width="1600" data-height="900">16:9</button>
+            <button class="preset-btn" data-width="1000" data-height="1500">2:3</button>
+          </div>
+          <div class="custom-ratio">
+            <div class="ratio-input-group">
+              <span class="ratio-unit">宽</span>
+              <input type="number" class="ratio-input" id="widthInput" value="1284" min="1">
+            </div>
+            <span class="ratio-separator">×</span>
+            <div class="ratio-input-group">
+              <input type="number" class="ratio-input" id="heightInput" value="2778" min="1">
+              <span class="ratio-unit">高 (像素)</span>
+            </div>
+            <button class="btn-apply" id="applyRatio">应用</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">📥 上传图片</h2>
+        <div class="drop-zone" id="uploadArea">
+          <div class="drop-zone-icon">🖼️</div>
+          <p class="drop-zone-text">点击或拖拽图片到此处</p>
+          <p class="drop-zone-hint">支持 JPG、PNG、WebP 格式</p>
+        </div>
+        <input type="file" id="fileInput" accept="image/*">
+      </section>
+
+      <section class="card editor-container" id="editorContainer">
+        <div class="crop-section">
+          <div class="section-title">裁切区域</div>
+          <div class="canvas-wrapper" id="canvasWrapper">
+            <canvas id="mainCanvas"></canvas>
+            <div class="crop-overlay">
+              <div class="crop-box" id="cropBox">
+                <div class="grid-vertical-1"></div>
+                <div class="grid-vertical-2"></div>
+                <div class="resize-handle handle-nw" data-handle="nw"></div>
+                <div class="resize-handle handle-ne" data-handle="ne"></div>
+                <div class="resize-handle handle-sw" data-handle="sw"></div>
+                <div class="resize-handle handle-se" data-handle="se"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="zoom-controls">
+            <span class="zoom-label">缩放</span>
+            <input type="range" class="zoom-slider" id="zoomSlider" min="10" max="200" value="100">
+            <span class="zoom-label" id="zoomValue">100%</span>
+          </div>
+
+          <div class="controls">
+            <button class="btn btn-primary" id="downloadBtn">下载裁切图片</button>
+            <button class="btn btn-secondary" id="resetBtn">重置</button>
+            <button class="btn btn-secondary" id="newImageBtn">选择新图片</button>
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div class="section-title">预览</div>
+          <div class="preview-canvas-wrapper">
+            <canvas id="previewCanvas"></canvas>
+          </div>
+
+          <div class="info-panel">
+            <div class="info-row">
+              <span class="info-label">输出尺寸</span>
+              <span class="info-value" id="outputSize">1284 × 2778</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">比例</span>
+              <span class="info-value" id="ratioDisplay">1 : 2.16</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">原图尺寸</span>
+              <span class="info-value" id="originalSize">-</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">裁切区域</span>
+              <span class="info-value" id="cropSize">-</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-text">
+        Generated by AgentSannyii • Works Offline • Single HTML File
+      </div>
+      <div class="footer-links">
+        <a href="#" class="footer-link">Documentation</a>
+        <a href="#" class="footer-link">Report Issue</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+        let OUTPUT_WIDTH = 1284;
+        let OUTPUT_HEIGHT = 2778;
+        let ASPECT_RATIO = OUTPUT_WIDTH / OUTPUT_HEIGHT;
+
+        let originalImage = null;
+        let scale = 1;
+        let cropData = { x: 0, y: 0, width: 0, height: 0 };
+        let isDragging = false;
+        let isResizing = false;
+        let currentHandle = null;
+        let startPos = { x: 0, y: 0 };
+        let startCrop = { x: 0, y: 0, width: 0, height: 0 };
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const editorContainer = document.getElementById('editorContainer');
+        const mainCanvas = document.getElementById('mainCanvas');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const cropBox = document.getElementById('cropBox');
+        const canvasWrapper = document.getElementById('canvasWrapper');
+        const zoomSlider = document.getElementById('zoomSlider');
+        const zoomValue = document.getElementById('zoomValue');
+        const ctx = mainCanvas.getContext('2d');
+        const previewCtx = previewCanvas.getContext('2d');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            if (e.dataTransfer.files.length > 0) {
+                loadImage(e.dataTransfer.files[0]);
+            }
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                loadImage(e.target.files[0]);
+            }
+        });
+
+        function loadImage(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('请上传图片文件');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    originalImage = img;
+                    scale = 1;
+                    updateCanvasSize();
+
+                    document.getElementById('originalSize').textContent = `${img.width} × ${img.height}`;
+
+                    editorContainer.classList.add('active');
+                    updateCropBox();
+                    render();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateCanvasSize() {
+            if (!originalImage) return;
+
+            const maxWidth = Math.min(canvasWrapper.clientWidth - 40, 700);
+            const maxHeight = 500;
+            scale = Math.min(
+                maxWidth / originalImage.width,
+                maxHeight / originalImage.height,
+                1
+            );
+
+            mainCanvas.width = originalImage.width * scale;
+            mainCanvas.height = originalImage.height * scale;
+
+            const cropWidth = Math.min(mainCanvas.width * 0.8, mainCanvas.width);
+            const cropHeight = cropWidth / ASPECT_RATIO;
+
+            cropData = {
+                x: (mainCanvas.width - cropWidth) / 2,
+                y: (mainCanvas.height - cropHeight) / 2,
+                width: cropWidth,
+                height: cropHeight,
+            };
+
+            updateCropBox();
+        }
+
+        function render() {
+            if (!originalImage) return;
+
+            ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+            ctx.drawImage(originalImage, 0, 0, mainCanvas.width, mainCanvas.height);
+
+            updatePreview();
+        }
+
+        function updatePreview() {
+            if (!originalImage) return;
+
+            const sx = cropData.x / scale;
+            const sy = cropData.y / scale;
+            const sw = cropData.width / scale;
+            const sh = cropData.height / scale;
+
+            previewCanvas.width = OUTPUT_WIDTH;
+            previewCanvas.height = OUTPUT_HEIGHT;
+            previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            previewCtx.drawImage(originalImage, sx, sy, sw, sh, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+
+            document.getElementById('outputSize').textContent = `${OUTPUT_WIDTH} × ${OUTPUT_HEIGHT}`;
+            updateRatioDisplay();
+            document.getElementById('cropSize').textContent = `${Math.round(sw)} × ${Math.round(sh)}`;
+        }
+
+        function updateRatioDisplay() {
+            const ratio = OUTPUT_WIDTH / OUTPUT_HEIGHT;
+            const ratioText = ratio >= 1
+                ? `1 : ${(ratio).toFixed(2)}`
+                : `${(1 / ratio).toFixed(2)} : 1`;
+            document.getElementById('ratioDisplay').textContent = ratioText;
+        }
+
+        function updateCropBox() {
+            cropBox.style.left = `${cropData.x}px`;
+            cropBox.style.top = `${cropData.y}px`;
+            cropBox.style.width = `${cropData.width}px`;
+            cropBox.style.height = `${cropData.height}px`;
+        }
+
+        canvasWrapper.addEventListener('mousedown', (e) => {
+            const rect = canvasWrapper.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const boxRect = cropBox.getBoundingClientRect();
+            const boxX = boxRect.left - rect.left;
+            const boxY = boxRect.top - rect.top;
+
+            const handle = e.target.closest('.resize-handle');
+
+            if (handle) {
+                isResizing = true;
+                currentHandle = handle.dataset.handle;
+            } else if (x >= boxX && x <= boxX + cropData.width && y >= boxY && y <= boxY + cropData.height) {
+                isDragging = true;
+            }
+
+            startPos = { x, y };
+            startCrop = { ...cropData };
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging && !isResizing) return;
+
+            const rect = canvasWrapper.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const dx = x - startPos.x;
+            const dy = y - startPos.y;
+
+            if (isDragging) {
+                cropData.x = startCrop.x + dx;
+                cropData.y = startCrop.y + dy;
+
+                cropData.x = Math.max(0, Math.min(cropData.x, mainCanvas.width - cropData.width));
+                cropData.y = Math.max(0, Math.min(cropData.y, mainCanvas.height - cropData.height));
+            } else if (isResizing) {
+                let newWidth = startCrop.width;
+                let newHeight = startCrop.height;
+                let newX = startCrop.x;
+                let newY = startCrop.y;
+
+                if (currentHandle.includes('e')) {
+                    newWidth = startCrop.width + dx;
+                }
+                if (currentHandle.includes('s')) {
+                    newHeight = startCrop.height + dy;
+                }
+                if (currentHandle.includes('w')) {
+                    newWidth = startCrop.width - dx;
+                    newX = startCrop.x + dx;
+                }
+                if (currentHandle.includes('n')) {
+                    newHeight = startCrop.height - dy;
+                    newY = startCrop.y + dy;
+                }
+
+                if (document.getElementById('lockRatio').checked) {
+                    const ratio = ASPECT_RATIO;
+                    if (newWidth / newHeight > ratio) {
+                        newWidth = newHeight * ratio;
+                    } else {
+                        newHeight = newWidth / ratio;
+                    }
+                }
+
+                newWidth = Math.max(50, newWidth);
+                newHeight = Math.max(50, newHeight);
+
+                cropData = { x: newX, y: newY, width: newWidth, height: newHeight };
+            }
+
+            updateCropBox();
+            render();
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            isResizing = false;
+            currentHandle = null;
+        });
+
+        zoomSlider.addEventListener('input', () => {
+            const zoom = Number(zoomSlider.value) / 100;
+            zoomValue.textContent = `${zoomSlider.value}%`;
+            if (!originalImage) return;
+
+            const centerX = cropData.x + cropData.width / 2;
+            const centerY = cropData.y + cropData.height / 2;
+            cropData.width *= zoom / scale;
+            cropData.height *= zoom / scale;
+            cropData.x = centerX - cropData.width / 2;
+            cropData.y = centerY - cropData.height / 2;
+            scale = zoom;
+            updateCropBox();
+            render();
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            if (!originalImage) return;
+            const link = document.createElement('a');
+            link.download = 'cropped-image.png';
+            link.href = previewCanvas.toDataURL('image/png');
+            link.click();
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (!originalImage) return;
+            updateCanvasSize();
+            render();
+        });
+
+        document.getElementById('newImageBtn').addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        const widthInput = document.getElementById('widthInput');
+        const heightInput = document.getElementById('heightInput');
+        const lockRatio = document.getElementById('lockRatio');
+        const presetBtns = document.querySelectorAll('.preset-btn');
+
+        function applyRatio() {
+            OUTPUT_WIDTH = parseInt(widthInput.value) || OUTPUT_WIDTH;
+            OUTPUT_HEIGHT = parseInt(heightInput.value) || OUTPUT_HEIGHT;
+            ASPECT_RATIO = OUTPUT_WIDTH / OUTPUT_HEIGHT;
+
+            document.getElementById('outputSize').textContent = `${OUTPUT_WIDTH} × ${OUTPUT_HEIGHT}`;
+            updateRatioDisplay();
+
+            if (lockRatio.checked) {
+                if (cropData.width / cropData.height > ASPECT_RATIO) {
+                    cropData.width = cropData.height * ASPECT_RATIO;
+                } else {
+                    cropData.height = cropData.width / ASPECT_RATIO;
+                }
+                updateCropBox();
+                render();
+            }
+        }
+
+        presetBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                presetBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                widthInput.value = btn.dataset.width;
+                heightInput.value = btn.dataset.height;
+                applyRatio();
+            });
+        });
+
+        document.getElementById('applyRatio').addEventListener('click', applyRatio);
+  </script>
+</body>
+</html>

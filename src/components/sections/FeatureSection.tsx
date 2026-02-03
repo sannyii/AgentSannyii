@@ -51,10 +51,10 @@ export function FeatureSection() {
         >
           <div className="split-text">
             <div className="split-text-line">
-              <span className="split-text-label">Mode</span>
+              <span className="split-text-label">模式</span>
               <span className="split-text-content">
-                ONLINE <span style={{ color: "var(--text-dim)" }}>/</span>{" "}
-                <span className="text-aurora">OFFLINE</span>
+                在线 <span style={{ color: "var(--text-dim)" }}>/</span>{" "}
+                <span className="text-aurora">离线</span>
               </span>
             </div>
           </div>
@@ -107,16 +107,14 @@ export function FeatureSection() {
             </div>
 
             <div className="feature-content">
-              <span className="feature-card-label">Connected</span>
+              <span className="feature-card-label">联网</span>
               <h3 className="feature-card-title">
-                ONLINE
+                在线
                 <br />
-                <span style={{ color: "var(--text-tertiary)" }}>TOOLS</span>
+                <span style={{ color: "var(--text-tertiary)" }}>工具</span>
               </h3>
               <p className="feature-card-desc">
-                Access AI-powered features that require cloud connectivity.
-                Video processing, cloud storage, and real-time collaboration
-                tools.
+                需要云端连接的 AI 功能。视频处理、云存储和实时协作工具。
               </p>
             </div>
           </motion.div>
@@ -181,17 +179,15 @@ export function FeatureSection() {
                 className="feature-card-label"
                 style={{ color: "var(--aurora-pink)" }}
               >
-                Independent
+                独立
               </span>
               <h3 className="feature-card-title">
-                OFFLINE
+                离线
                 <br />
-                <span style={{ color: "var(--text-tertiary)" }}>TOOLS</span>
+                <span style={{ color: "var(--text-tertiary)" }}>工具</span>
               </h3>
               <p className="feature-card-desc">
-                Download once, keep forever. Pure HTML files that run entirely in
-                your browser with zero external dependencies. Your data never
-                leaves your device.
+                一次下载，永久使用。纯 HTML 文件，零外部依赖，数据永不离开你的设备。
               </p>
             </div>
           </motion.div>

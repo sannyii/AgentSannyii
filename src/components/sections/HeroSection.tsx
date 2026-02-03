@@ -90,37 +90,36 @@ export function HeroSection() {
           {/* Left - Typography */}
           <div className="hero-text">
             <div className="hero-eyebrow">
-              <span className="text-eyebrow">AI-Powered Utilities</span>
+              <span className="text-eyebrow">AI 驱动工具</span>
             </div>
 
             <h1 ref={titleRef} className="hero-title text-display text-mega">
               <span className="hero-title-word" style={{ display: "block" }}>
-                Every tiny
+                每个微小
               </span>
               <span className="hero-title-word" style={{ display: "block" }}>
-                problem,
+                的问题,
               </span>
               <span
                 className="hero-title-word hero-title-highlight"
                 style={{ display: "block" }}
               >
-                solved.
+                一个文件解决。
               </span>
             </h1>
 
             <p className="hero-desc">
-              Turn daily friction into standalone HTML tools. Generate, download,
-              and run offline or online without installing apps.
+              将日常摩擦转化为独立的 HTML 工具。生成、下载，无需安装应用即可离线或在线运行。
             </p>
 
             <div className="hero-cta">
               <motion.a
-                href="#request"
+                href="/create"
                 className="btn btn-primary"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <span>Request a Tool</span>
+                <span>创建工具</span>
                 <svg
                   width="16"
                   height="16"
@@ -143,7 +142,7 @@ export function HeroSection() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                Browse Tools
+                浏览工具
               </motion.a>
             </div>
           </div>
@@ -165,7 +164,7 @@ export function HeroSection() {
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               >
                 <span className="orbit-stat-value">100%</span>
-                <span className="orbit-stat-label">Offline Ready</span>
+                <span className="orbit-stat-label">离线可用</span>
               </motion.div>
 
               <motion.div
@@ -178,8 +177,8 @@ export function HeroSection() {
                   delay: 1.3,
                 }}
               >
-                <span className="orbit-stat-value">1 File</span>
-                <span className="orbit-stat-label">Zero Dependencies</span>
+                <span className="orbit-stat-value">1 文件</span>
+                <span className="orbit-stat-label">零依赖</span>
               </motion.div>
 
               <motion.div
@@ -193,7 +192,7 @@ export function HeroSection() {
                 }}
               >
                 <span className="orbit-stat-value">∞</span>
-                <span className="orbit-stat-label">Use Forever</span>
+                <span className="orbit-stat-label">永久使用</span>
               </motion.div>
             </div>
           </div>
@@ -214,7 +213,7 @@ export function HeroSection() {
         >
           <div className="scroll-wheel" />
         </motion.div>
-        <span className="scroll-text">Scroll</span>
+        <span className="scroll-text">向下滚动</span>
       </motion.div>
     </section>
   );

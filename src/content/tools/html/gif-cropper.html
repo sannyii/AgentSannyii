@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GIF 裁切工具 - 支持裁切区域、比例锁定与导出"> 
+  <title>GIF 裁切工具 | AgentSannyii Utility</title>
+  
+  <style>
+    /* ─── CSS Variables - Aurora Theme ─── */
+    :root {
+      --void: #050508;
+      --void-lighter: #0a0a12;
+      --void-card: rgba(12, 12, 22, 0.85);
+      --void-input: rgba(255, 255, 255, 0.05);
+      
+      --aurora-cyan: #00f5ff;
+      --aurora-pink: #ff2a9d;
+      --aurora-purple: #bd34fe;
+      --aurora-blue: #4facfe;
+      --aurora-violet: #a855f7;
+      --aurora-gold: #ffd700;
+      
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.85);
+      --text-tertiary: rgba(255, 255, 255, 0.55);
+      --text-dim: rgba(255, 255, 255, 0.3);
+      --text-muted: rgba(255, 255, 255, 0.15);
+      
+      --gradient-aurora: linear-gradient(135deg, var(--aurora-cyan) 0%, var(--aurora-purple) 50%, var(--aurora-pink) 100%);
+      --gradient-void: radial-gradient(ellipse at 50% 0%, rgba(0, 245, 255, 0.08) 0%, transparent 50%),
+                       radial-gradient(ellipse at 80% 80%, rgba(189, 52, 254, 0.06) 0%, transparent 50%);
+      
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-dramatic: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-bounce: cubic-bezier(0.68, -0.15, 0.265, 1.35);
+      
+      --font-display: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-body: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2rem;
+      --space-2xl: 3rem;
+      --space-3xl: 4rem;
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+    }
+    
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--void);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: var(--gradient-void);
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .aurora-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: rgba(0, 245, 255, 0.15);
+      top: -100px;
+      right: -100px;
+      animation: float 20s ease-in-out infinite;
+    }
+    
+    .orb-2 {
+      width: 300px;
+      height: 300px;
+      background: rgba(189, 52, 254, 0.12);
+      bottom: 10%;
+      left: -100px;
+      animation: float 25s ease-in-out infinite reverse;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(20px, -30px) scale(1.05); }
+    }
+    
+    .app-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: var(--space-xl);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: var(--space-xl);
+      border-bottom: 1px solid var(--text-muted);
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+    
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background: var(--gradient-aurora);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .brand-text {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+    
+    .brand-text span {
+      background: var(--gradient-aurora);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .tool-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xl);
+    }
+    
+    .tool-description {
+      color: var(--text-tertiary);
+      font-size: 0.95rem;
+      max-width: 700px;
+      line-height: 1.7;
+    }
+    
+    .card {
+      background: var(--void-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--text-muted);
+      border-radius: var(--radius-xl);
+      padding: var(--space-xl);
+      transition: all 0.4s var(--ease-dramatic);
+    }
+    
+    .card:hover {
+      border-color: rgba(0, 245, 255, 0.2);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--aurora-cyan);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      padding: var(--space-md) var(--space-xl);
+      border-radius: var(--radius-full);
+      font-family: var(--font-display);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.4s var(--ease-dramatic);
+      border: none;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-primary {
+      background: var(--gradient-aurora);
+      color: var(--void);
+      box-shadow: 0 4px 20px rgba(0, 245, 255, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 245, 255, 0.4);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--text-muted);
+    }
+    
+    .btn-secondary:hover {
+      border-color: var(--aurora-cyan);
+      background: rgba(0, 245, 255, 0.05);
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--text-muted);
+      border-radius: var(--radius-xl);
+      padding: var(--space-3xl);
+      text-align: center;
+      transition: all 0.3s var(--ease-smooth);
+      cursor: pointer;
+    }
+    
+    .drop-zone:hover,
+    .drop-zone.drag-over {
+      border-color: var(--aurora-cyan);
+      background: rgba(0, 245, 255, 0.05);
+    }
+    
+    .drop-zone-icon {
+      font-size: 3rem;
+      margin-bottom: var(--space-md);
+      opacity: 0.6;
+    }
+    
+    .drop-zone-text {
+      color: var(--text-tertiary);
+      font-size: 0.9375rem;
+    }
+    
+    .drop-zone-text span {
+      color: var(--aurora-cyan);
+      font-weight: 500;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: var(--space-md) var(--space-lg);
+      background: var(--void-input);
+      border: 1px solid var(--text-muted);
+      border-radius: var(--radius-lg);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      transition: all 0.3s var(--ease-smooth);
+      outline: none;
+    }
+    
+    .input-field:focus {
+      border-color: var(--aurora-cyan);
+      box-shadow: 0 0 0 3px rgba(0, 245, 255, 0.1);
+    }
+
+    .footer {
+      margin-top: auto;
+      padding-top: var(--space-2xl);
+      border-top: 1px solid var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+    }
+    
+    .footer-text {
+      font-size: 0.8125rem;
+      color: var(--text-dim);
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: var(--space-lg);
+    }
+    
+    .footer-link {
+      font-size: 0.8125rem;
+      color: var(--text-tertiary);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    .footer-link:hover {
+      color: var(--aurora-cyan);
+    }
+
+    .hidden { display: none !important; }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: var(--void-lighter);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--text-muted);
+      border-radius: var(--radius-full);
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-dim);
+    }
+
+    /* ─── Tool-specific styles ─── */
+    .editor {
+      display: none;
+    }
+
+    .editor.active {
+      display: block;
+    }
+
+    .info-bar {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-lg);
+      margin-bottom: var(--space-lg);
+      flex-wrap: wrap;
+    }
+
+    .info-item {
+      background: rgba(0, 245, 255, 0.08);
+      border: 1px solid rgba(0, 245, 255, 0.2);
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .info-item span {
+      color: var(--aurora-cyan);
+      font-weight: 600;
+    }
+
+    .canvas-wrapper {
+      text-align: center;
+      margin-bottom: var(--space-lg);
+      overflow: auto;
+      max-height: 60vh;
+    }
+
+    .canvas-container {
+      position: relative;
+      display: inline-block;
+      margin: 0 auto;
+      cursor: crosshair;
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+      background: repeating-conic-gradient(rgba(255,255,255,0.08) 0% 25%, rgba(255,255,255,0.12) 0% 50%) 50% / 20px 20px;
+      border: 1px solid var(--text-muted);
+    }
+
+    #gifCanvas {
+      display: block;
+      max-width: 100%;
+    }
+
+    .crop-box {
+      position: absolute;
+      border: 2px solid var(--aurora-cyan);
+      background: rgba(0, 245, 255, 0.2);
+      pointer-events: none;
+    }
+
+    .crop-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 1px dashed rgba(255, 255, 255, 0.7);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+
+    .control-group {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--text-muted);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+    }
+
+    .control-group label {
+      display: block;
+      margin-bottom: var(--space-sm);
+      color: var(--text-tertiary);
+      font-size: 0.85rem;
+    }
+
+    .control-group input {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid var(--text-muted);
+      border-radius: var(--radius-sm);
+      background: var(--void-input);
+      color: var(--text-primary);
+      font-size: 0.95rem;
+    }
+
+    .control-group input:focus {
+      outline: none;
+      border-color: var(--aurora-cyan);
+    }
+
+    .aspect-ratio-btns {
+      display: flex;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-md);
+    }
+
+    .aspect-btn {
+      padding: 0.4rem 0.8rem;
+      border: 1px solid var(--text-muted);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.85rem;
+    }
+
+    .aspect-btn:hover,
+    .aspect-btn.active {
+      border-color: var(--aurora-cyan);
+      background: rgba(0, 245, 255, 0.12);
+      color: var(--aurora-cyan);
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .progress-container {
+      display: none;
+      margin: var(--space-lg) 0;
+    }
+
+    .progress-container.active {
+      display: block;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--void-input);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin: var(--space-sm) 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--gradient-aurora);
+      width: 0%;
+      transition: width 0.3s var(--ease-smooth);
+    }
+
+    .progress-text {
+      text-align: center;
+      color: var(--text-tertiary);
+      font-size: 0.85rem;
+    }
+
+    .preview-section {
+      display: none;
+      text-align: center;
+    }
+
+    .preview-section.active {
+      display: block;
+    }
+
+    .preview-section h3 {
+      margin-bottom: var(--space-md);
+      color: var(--aurora-cyan);
+    }
+
+    #previewImage {
+      max-width: 100%;
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--text-muted);
+    }
+
+    .resize-handles {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: var(--aurora-cyan);
+      border: 2px solid #fff;
+      border-radius: 50%;
+    }
+
+    .handle-nw { top: -6px; left: -6px; cursor: nw-resize; }
+    .handle-ne { top: -6px; right: -6px; cursor: ne-resize; }
+    .handle-sw { bottom: -6px; left: -6px; cursor: sw-resize; }
+    .handle-se { bottom: -6px; right: -6px; cursor: se-resize; }
+    .handle-n { top: -6px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+    .handle-s { bottom: -6px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+    .handle-e { top: 50%; right: -6px; transform: translateY(-50%); cursor: e-resize; }
+    .handle-w { top: 50%; left: -6px; transform: translateY(-50%); cursor: w-resize; }
+
+    @media (max-width: 768px) {
+      .controls { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="aurora-orb orb-1"></div>
+  <div class="aurora-orb orb-2"></div>
+  
+  <div class="app-container">
+    <header class="header">
+      <div class="brand">
+        <div class="brand-logo">🪄</div>
+        <div class="brand-text">Agent<span>Sannyii</span></div>
+      </div>
+      <h1 class="tool-title">GIF 裁切工具</h1>
+    </header>
+    
+    <main class="main-content">
+      <p class="tool-description">
+        上传 GIF，拖动裁切区域并导出新的 GIF。支持比例锁定、数值微调和裁切预览。
+      </p>
+      
+      <section class="card">
+        <h2 class="card-title">📥 上传 GIF</h2>
+        <div class="drop-zone" id="uploadArea">
+          <div class="drop-zone-icon">📁</div>
+          <p class="drop-zone-text">点击或拖拽 GIF 文件到这里</p>
+          <input type="file" id="fileInput" accept="image/gif" hidden>
+        </div>
+      </section>
+
+      <section class="card editor" id="editor">
+        <h2 class="card-title">✂️ 裁切区域</h2>
+        <div class="info-bar">
+          <div class="info-item">原始尺寸: <span id="originalSize">-</span></div>
+          <div class="info-item">帧数: <span id="frameCount">-</span></div>
+          <div class="info-item">裁切尺寸: <span id="cropSize">-</span></div>
+        </div>
+
+        <div class="canvas-wrapper">
+          <div class="canvas-container" id="canvasContainer">
+            <canvas id="gifCanvas"></canvas>
+            <div class="crop-box" id="cropBox">
+              <div class="resize-handles handle-nw" data-handle="nw"></div>
+              <div class="resize-handles handle-ne" data-handle="ne"></div>
+              <div class="resize-handles handle-sw" data-handle="sw"></div>
+              <div class="resize-handles handle-se" data-handle="se"></div>
+              <div class="resize-handles handle-n" data-handle="n"></div>
+              <div class="resize-handles handle-s" data-handle="s"></div>
+              <div class="resize-handles handle-e" data-handle="e"></div>
+              <div class="resize-handles handle-w" data-handle="w"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-group" style="margin-bottom: var(--space-lg);">
+          <label>快速选择比例</label>
+          <div class="aspect-ratio-btns">
+            <button class="aspect-btn active" data-ratio="free">自由</button>
+            <button class="aspect-btn" data-ratio="1:1">1:1</button>
+            <button class="aspect-btn" data-ratio="4:3">4:3</button>
+            <button class="aspect-btn" data-ratio="16:9">16:9</button>
+            <button class="aspect-btn" data-ratio="9:16">9:16</button>
+            <button class="aspect-btn" data-ratio="3:4">3:4</button>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="control-group">
+            <label>X 坐标</label>
+            <input type="number" id="cropX" min="0" value="0">
+          </div>
+          <div class="control-group">
+            <label>Y 坐标</label>
+            <input type="number" id="cropY" min="0" value="0">
+          </div>
+          <div class="control-group">
+            <label>宽度</label>
+            <input type="number" id="cropWidth" min="1" value="100">
+          </div>
+          <div class="control-group">
+            <label>高度</label>
+            <input type="number" id="cropHeight" min="1" value="100">
+          </div>
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-text" id="progressText">处理中...</div>
+        </div>
+
+        <div class="buttons">
+          <button class="btn btn-secondary" id="resetBtn">重置选区</button>
+          <button class="btn btn-primary" id="cropBtn">裁切并导出</button>
+        </div>
+      </section>
+
+      <section class="card preview-section" id="previewSection">
+        <h2 class="card-title">📤 裁切预览</h2>
+        <h3>裁切预览</h3>
+        <img id="previewImage" alt="预览">
+        <div class="buttons" style="margin-top: var(--space-lg);">
+          <button class="btn btn-primary" id="downloadBtn">下载 GIF</button>
+        </div>
+      </section>
+    </main>
+    
+    <footer class="footer">
+      <div class="footer-text">
+        Generated by AgentSannyii • Works Offline • Single HTML File
+      </div>
+      <div class="footer-links">
+        <a href="#" class="footer-link">Documentation</a>
+        <a href="#" class="footer-link">Report Issue</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+        // GIF Parser - 解析GIF文件
+        class GifParser {
+            constructor(arrayBuffer) {
+                this.data = new Uint8Array(arrayBuffer);
+                this.pos = 0;
+                this.frames = [];
+                this.width = 0;
+                this.height = 0;
+                this.globalColorTable = null;
+                this.globalColorTableSize = 0;
+            }
+
+            parse() {
+                this.readHeader();
+                this.readLogicalScreenDescriptor();
+
+                if (this.globalColorTableFlag) {
+                    this.globalColorTable = this.readColorTable(this.globalColorTableSize);
+                }
+
+                while (this.pos < this.data.length) {
+                    const introducer = this.data[this.pos++];
+
+                    if (introducer === 0x21) { // Extension
+                        this.readExtension();
+                    } else if (introducer === 0x2C) { // Image
+                        this.readImage();
+                    } else if (introducer === 0x3B) { // Trailer
+                        break;
+                    }
+                }
+
+                return {
+                    width: this.width,
+                    height: this.height,
+                    frames: this.frames
+                };
+            }
+
+            readHeader() {
+                const signature = String.fromCharCode(...this.data.slice(0, 6));
+                if (!signature.startsWith('GIF')) {
+                    throw new Error('Not a valid GIF file');
+                }
+                this.pos = 6;
+            }
+
+            readLogicalScreenDescriptor() {
+                this.width = this.readUint16();
+                this.height = this.readUint16();
+                const packed = this.data[this.pos++];
+                this.globalColorTableFlag = (packed & 0x80) !== 0;
+                this.globalColorTableSize = 2 << (packed & 0x07);
+                this.pos += 2; // Background color index and pixel aspect ratio
+            }
+
+            readColorTable(size) {
+                const table = [];
+                for (let i = 0; i < size; i++) {
+                    table.push([
+                        this.data[this.pos++],
+                        this.data[this.pos++],
+                        this.data[this.pos++]
+                    ]);
+                }
+                return table;
+            }
+
+            readUint16() {
+                const value = this.data[this.pos] | (this.data[this.pos + 1] << 8);
+                this.pos += 2;
+                return value;
+            }
+
+            readExtension() {
+                const label = this.data[this.pos++];
+
+                if (label === 0xF9) { // Graphics Control Extension
+                    this.pos++; // Block size
+                    const packed = this.data[this.pos++];
+                    this.currentDisposal = (packed >> 2) & 0x07;
+                    this.currentTransparent = (packed & 0x01) !== 0;
+                    this.currentDelay = this.readUint16();
+                    this.currentTransparentIndex = this.data[this.pos++];
+                    this.pos++; // Block terminator
+                } else {
+                    // Skip other extensions
+                    while (true) {
+                        const blockSize = this.data[this.pos++];
+                        if (blockSize === 0) break;
+                        this.pos += blockSize;
+                    }
+                }
+            }
+
+            readImage() {
+                const frame = {
+                    left: this.readUint16(),
+                    top: this.readUint16(),
+                    width: this.readUint16(),
+                    height: this.readUint16(),
+                    delay: this.currentDelay || 10,
+                    disposal: this.currentDisposal || 0,
+                    transparent: this.currentTransparent || false,
+                    transparentIndex: this.currentTransparentIndex || 0
+                };
+
+                const packed = this.data[this.pos++];
+                const localColorTableFlag = (packed & 0x80) !== 0;
+                const interlaced = (packed & 0x40) !== 0;
+                const localColorTableSize = 2 << (packed & 0x07);
+
+                let colorTable = this.globalColorTable;
+                if (localColorTableFlag) {
+                    colorTable = this.readColorTable(localColorTableSize);
+                }
+
+                const minCodeSize = this.data[this.pos++];
+                const imageData = this.readImageData();
+
+                frame.pixels = this.decodeLZW(imageData, minCodeSize, frame.width * frame.height);
+                frame.colorTable = colorTable;
+
+                if (interlaced) {
+                    frame.pixels = this.deinterlace(frame.pixels, frame.width, frame.height);
+                }
+
+                this.frames.push(frame);
+
+                this.currentDelay = null;
+                this.currentDisposal = null;
+                this.currentTransparent = null;
+                this.currentTransparentIndex = null;
+            }
+
+            readImageData() {
+                const blocks = [];
+                while (true) {
+                    const blockSize = this.data[this.pos++];
+                    if (blockSize === 0) break;
+                    blocks.push(this.data.slice(this.pos, this.pos + blockSize));
+                    this.pos += blockSize;
+                }
+
+                const totalLength = blocks.reduce((sum, b) => sum + b.length, 0);
+                const result = new Uint8Array(totalLength);
+                let offset = 0;
+                for (const block of blocks) {
+                    result.set(block, offset);
+                    offset += block.length;
+                }
+                return result;
+            }
+
+            decodeLZW(data, minCodeSize, pixelCount) {
+                const clearCode = 1 << minCodeSize;
+                const eoiCode = clearCode + 1;
+
+                let codeSize = minCodeSize + 1;
+                let codeMask = (1 << codeSize) - 1;
+                let nextCode = eoiCode + 1;
+
+                const codeTable = [];
+                for (let i = 0; i < clearCode; i++) {
+                    codeTable[i] = [i];
+                }
+                codeTable[clearCode] = [];
+                codeTable[eoiCode] = [];
+
+                const pixels = new Uint8Array(pixelCount);
+                let pixelIndex = 0;
+
+                let bitBuffer = 0;
+                let bitCount = 0;
+                let dataIndex = 0;
+
+                let prevCode = -1;
+
+                while (pixelIndex < pixelCount && dataIndex < data.length) {
+                    while (bitCount < codeSize && dataIndex < data.length) {
+                        bitBuffer |= data[dataIndex++] << bitCount;
+                        bitCount += 8;
+                    }
+
+                    const code = bitBuffer & codeMask;
+                    bitBuffer >>= codeSize;
+                    bitCount -= codeSize;
+
+                    if (code === clearCode) {
+                        codeSize = minCodeSize + 1;
+                        codeMask = (1 << codeSize) - 1;
+                        nextCode = eoiCode + 1;
+                        codeTable.length = eoiCode + 1;
+                        prevCode = -1;
+                        continue;
+                    }
+
+                    if (code === eoiCode) break;
+
+                    let entry;
+                    if (code < nextCode) {
+                        entry = codeTable[code];
+                    } else if (code === nextCode && prevCode >= 0) {
+                        entry = [...codeTable[prevCode], codeTable[prevCode][0]];
+                    } else {
+                        break;
+                    }
+
+                    for (const pixel of entry) {
+                        if (pixelIndex < pixelCount) {
+                            pixels[pixelIndex++] = pixel;
+                        }
+                    }
+
+                    if (prevCode >= 0 && nextCode < 4096) {
+                        codeTable[nextCode++] = [...codeTable[prevCode], entry[0]];
+                        if (nextCode > codeMask && codeSize < 12) {
+                            codeSize++;
+                            codeMask = (1 << codeSize) - 1;
+                        }
+                    }
+
+                    prevCode = code;
+                }
+
+                return pixels;
+            }
+
+            deinterlace(pixels, width, height) {
+                const result = new Uint8Array(pixels.length);
+                const passes = [
+                    { start: 0, step: 8 },
+                    { start: 4, step: 8 },
+                    { start: 2, step: 4 },
+                    { start: 1, step: 2 }
+                ];
+
+                let srcRow = 0;
+                for (const pass of passes) {
+                    for (let y = pass.start; y < height; y += pass.step) {
+                        const srcOffset = srcRow * width;
+                        const dstOffset = y * width;
+                        result.set(pixels.slice(srcOffset, srcOffset + width), dstOffset);
+                        srcRow++;
+                    }
+                }
+
+                return result;
+            }
+        }
+
+        // GIF Encoder - 编码GIF文件
+        class GifEncoder {
+            constructor(width, height) {
+                this.width = width;
+                this.height = height;
+                this.frames = [];
+            }
+
+            addFrame(imageData, delay = 100) {
+                this.frames.push({ imageData, delay });
+            }
+
+            encode() {
+                const output = [];
+
+                // Header
+                this.writeString(output, 'GIF89a');
+
+                // Logical Screen Descriptor
+                this.writeUint16(output, this.width);
+                this.writeUint16(output, this.height);
+                output.push(0xF7); // Global color table, 256 colors
+                output.push(0);    // Background color
+                output.push(0);    // Pixel aspect ratio
+
+                // Global Color Table (256 colors)
+                for (let i = 0; i < 256; i++) {
+                    output.push(i, i, i);
+                }
+
+                // Netscape Extension for looping
+                output.push(0x21, 0xFF, 0x0B);
+                this.writeString(output, 'NETSCAPE2.0');
+                output.push(0x03, 0x01, 0x00, 0x00, 0x00);
+
+                // Frames
+                for (const frame of this.frames) {
+                    this.writeFrame(output, frame);
+                }
+
+                // Trailer
+                output.push(0x3B);
+
+                return new Uint8Array(output);
+            }
+
+            writeFrame(output, frame) {
+                const { imageData, delay } = frame;
+
+                // Graphics Control Extension
+                output.push(0x21, 0xF9, 0x04);
+                output.push(0x04); // Disposal method: restore to background
+                this.writeUint16(output, Math.round(delay / 10));
+                output.push(0x00); // No transparent color
+                output.push(0x00);
+
+                // Image Descriptor
+                output.push(0x2C);
+                this.writeUint16(output, 0); // Left
+                this.writeUint16(output, 0); // Top
+                this.writeUint16(output, this.width);
+                this.writeUint16(output, this.height);
+                output.push(0x00); // No local color table
+
+                // Image Data
+                const pixels = this.quantize(imageData);
+                const encoded = this.encodeLZW(pixels, 8);
+
+                output.push(8); // Min code size
+
+                // Write sub-blocks
+                let pos = 0;
+                while (pos < encoded.length) {
+                    const blockSize = Math.min(255, encoded.length - pos);
+                    output.push(blockSize);
+                    for (let i = 0; i < blockSize; i++) {
+                        output.push(encoded[pos++]);
+                    }
+                }
+                output.push(0); // Block terminator
+            }
+
+            quantize(imageData) {
+                const pixels = new Uint8Array(this.width * this.height);
+                const data = imageData.data;
+
+                for (let i = 0; i < pixels.length; i++) {
+                    const r = data[i * 4];
+                    const g = data[i * 4 + 1];
+                    const b = data[i * 4 + 2];
+                    // Simple grayscale conversion using luminance
+                    pixels[i] = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+                }
+
+                return pixels;
+            }
+
+            encodeLZW(pixels, minCodeSize) {
+                const clearCode = 1 << minCodeSize;
+                const eoiCode = clearCode + 1;
+
+                const output = [];
+                let codeSize = minCodeSize + 1;
+                let nextCode = eoiCode + 1;
+                const codeTable = new Map();
+
+                let bitBuffer = 0;
+                let bitCount = 0;
+
+                const writeCode = (code) => {
+                    bitBuffer |= code << bitCount;
+                    bitCount += codeSize;
+                    while (bitCount >= 8) {
+                        output.push(bitBuffer & 0xFF);
+                        bitBuffer >>= 8;
+                        bitCount -= 8;
+                    }
+                };
+
+                writeCode(clearCode);
+
+                let buffer = '';
+                for (let i = 0; i < pixels.length; i++) {
+                    const pixel = String.fromCharCode(pixels[i]);
+                    const combined = buffer + pixel;
+
+                    if (codeTable.has(combined) || combined.length === 1) {
+                        buffer = combined;
+                    } else {
+                        const code = buffer.length === 1
+                            ? buffer.charCodeAt(0)
+                            : codeTable.get(buffer);
+                        writeCode(code);
+
+                        if (nextCode < 4096) {
+                            codeTable.set(combined, nextCode++);
+                            if (nextCode > (1 << codeSize) && codeSize < 12) {
+                                codeSize++;
+                            }
+                        } else {
+                            writeCode(clearCode);
+                            codeTable.clear();
+                            codeSize = minCodeSize + 1;
+                            nextCode = eoiCode + 1;
+                        }
+
+                        buffer = pixel;
+                    }
+                }
+
+                if (buffer.length > 0) {
+                    const code = buffer.length === 1
+                        ? buffer.charCodeAt(0)
+                        : codeTable.get(buffer);
+                    writeCode(code);
+                }
+
+                writeCode(eoiCode);
+
+                if (bitCount > 0) {
+                    output.push(bitBuffer & 0xFF);
+                }
+
+                return output;
+            }
+
+            writeString(output, str) {
+                for (let i = 0; i < str.length; i++) {
+                    output.push(str.charCodeAt(i));
+                }
+            }
+
+            writeUint16(output, value) {
+                output.push(value & 0xFF, (value >> 8) & 0xFF);
+            }
+        }
+
+        class GifCropper {
+            constructor() {
+                this.canvas = document.getElementById('gifCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.frames = [];
+                this.currentFrameIndex = 0;
+                this.cropBox = { x: 0, y: 0, width: 100, height: 100 };
+                this.isDragging = false;
+                this.isResizing = false;
+                this.currentHandle = null;
+                this.dragStart = { x: 0, y: 0 };
+                this.cropBoxStart = { x: 0, y: 0, width: 0, height: 0 };
+                this.aspectRatio = null;
+                this.init();
+            }
+
+            init() {
+                const uploadArea = document.getElementById('uploadArea');
+                const fileInput = document.getElementById('fileInput');
+                const container = document.getElementById('canvasContainer');
+
+                uploadArea.addEventListener('click', () => fileInput.click());
+
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('drag-over');
+                });
+
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('drag-over');
+                });
+
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('drag-over');
+                    if (e.dataTransfer.files.length > 0) {
+                        this.loadFile(e.dataTransfer.files[0]);
+                    }
+                });
+
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        this.loadFile(e.target.files[0]);
+                    }
+                });
+
+                // Crop box events
+                container.addEventListener('mousedown', (e) => this.onMouseDown(e));
+                document.addEventListener('mousemove', (e) => this.onMouseMove(e));
+                document.addEventListener('mouseup', () => this.onMouseUp());
+
+                // Input controls
+                ['cropX', 'cropY', 'cropWidth', 'cropHeight'].forEach(id => {
+                    document.getElementById(id).addEventListener('input', () => this.onInputChange());
+                });
+
+                // Aspect ratio buttons
+                document.querySelectorAll('.aspect-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.aspect-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        const ratio = btn.dataset.ratio;
+                        this.setAspectRatio(ratio);
+                    });
+                });
+
+                // Buttons
+                document.getElementById('resetBtn').addEventListener('click', () => this.resetCrop());
+                document.getElementById('cropBtn').addEventListener('click', () => this.cropGif());
+            }
+
+            async loadFile(file) {
+                if (!file.type.includes('gif')) {
+                    alert('请上传 GIF 文件');
+                    return;
+                }
+
+                const arrayBuffer = await file.arrayBuffer();
+                const parser = new GifParser(arrayBuffer);
+                const gifData = parser.parse();
+
+                this.frames = gifData.frames;
+                this.width = gifData.width;
+                this.height = gifData.height;
+
+                this.canvas.width = this.width;
+                this.canvas.height = this.height;
+
+                // Initialize crop box
+                this.cropBox = {
+                    x: Math.floor(this.width * 0.1),
+                    y: Math.floor(this.height * 0.1),
+                    width: Math.floor(this.width * 0.8),
+                    height: Math.floor(this.height * 0.8)
+                };
+
+                document.getElementById('originalSize').textContent = `${this.width} × ${this.height}`;
+                document.getElementById('frameCount').textContent = this.frames.length;
+
+                document.getElementById('editor').classList.add('active');
+                document.getElementById('previewSection').classList.remove('active');
+
+                this.updateInputs();
+                this.render();
+                this.startAnimation();
+            }
+
+            render() {
+                if (!this.frames.length) return;
+
+                const frame = this.frames[this.currentFrameIndex];
+                const imageData = this.ctx.createImageData(this.width, this.height);
+
+                for (let i = 0; i < frame.pixels.length; i++) {
+                    const colorIndex = frame.pixels[i];
+                    const color = frame.colorTable[colorIndex] || [0, 0, 0];
+                    const idx = i * 4;
+                    imageData.data[idx] = color[0];
+                    imageData.data[idx + 1] = color[1];
+                    imageData.data[idx + 2] = color[2];
+                    imageData.data[idx + 3] = 255;
+                }
+
+                this.ctx.putImageData(imageData, frame.left, frame.top);
+                this.updateCropBox();
+            }
+
+            startAnimation() {
+                if (this.animationInterval) {
+                    clearInterval(this.animationInterval);
+                }
+
+                this.animationInterval = setInterval(() => {
+                    this.currentFrameIndex = (this.currentFrameIndex + 1) % this.frames.length;
+                    this.render();
+                }, 100);
+            }
+
+            updateCropBox() {
+                const cropBoxEl = document.getElementById('cropBox');
+                cropBoxEl.style.left = `${this.cropBox.x}px`;
+                cropBoxEl.style.top = `${this.cropBox.y}px`;
+                cropBoxEl.style.width = `${this.cropBox.width}px`;
+                cropBoxEl.style.height = `${this.cropBox.height}px`;
+
+                document.getElementById('cropSize').textContent = `${Math.round(this.cropBox.width)} × ${Math.round(this.cropBox.height)}`;
+            }
+
+            updateInputs() {
+                document.getElementById('cropX').value = Math.round(this.cropBox.x);
+                document.getElementById('cropY').value = Math.round(this.cropBox.y);
+                document.getElementById('cropWidth').value = Math.round(this.cropBox.width);
+                document.getElementById('cropHeight').value = Math.round(this.cropBox.height);
+            }
+
+            onInputChange() {
+                this.cropBox.x = Math.max(0, parseInt(document.getElementById('cropX').value) || 0);
+                this.cropBox.y = Math.max(0, parseInt(document.getElementById('cropY').value) || 0);
+                this.cropBox.width = Math.max(1, parseInt(document.getElementById('cropWidth').value) || 1);
+                this.cropBox.height = Math.max(1, parseInt(document.getElementById('cropHeight').value) || 1);
+
+                this.constrainCropBox();
+                this.updateCropBox();
+            }
+
+            setAspectRatio(ratio) {
+                if (ratio === 'free') {
+                    this.aspectRatio = null;
+                    return;
+                }
+
+                const [w, h] = ratio.split(':').map(Number);
+                this.aspectRatio = w / h;
+
+                const centerX = this.cropBox.x + this.cropBox.width / 2;
+                const centerY = this.cropBox.y + this.cropBox.height / 2;
+                let newWidth = this.cropBox.width;
+                let newHeight = this.cropBox.height;
+
+                if (newWidth / newHeight > this.aspectRatio) {
+                    newWidth = newHeight * this.aspectRatio;
+                } else {
+                    newHeight = newWidth / this.aspectRatio;
+                }
+
+                this.cropBox.width = newWidth;
+                this.cropBox.height = newHeight;
+                this.cropBox.x = centerX - newWidth / 2;
+                this.cropBox.y = centerY - newHeight / 2;
+
+                this.constrainCropBox();
+                this.updateInputs();
+                this.updateCropBox();
+            }
+
+            constrainCropBox() {
+                if (this.cropBox.x < 0) this.cropBox.x = 0;
+                if (this.cropBox.y < 0) this.cropBox.y = 0;
+                if (this.cropBox.x + this.cropBox.width > this.width) this.cropBox.x = this.width - this.cropBox.width;
+                if (this.cropBox.y + this.cropBox.height > this.height) this.cropBox.y = this.height - this.cropBox.height;
+
+                if (this.cropBox.width < 10) this.cropBox.width = 10;
+                if (this.cropBox.height < 10) this.cropBox.height = 10;
+            }
+
+            onMouseDown(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const cropBoxEl = document.getElementById('cropBox');
+                const handles = cropBoxEl.querySelectorAll('.resize-handles');
+
+                for (const handle of handles) {
+                    const handleRect = handle.getBoundingClientRect();
+                    if (
+                        e.clientX >= handleRect.left && e.clientX <= handleRect.right &&
+                        e.clientY >= handleRect.top && e.clientY <= handleRect.bottom
+                    ) {
+                        this.isResizing = true;
+                        this.currentHandle = handle.dataset.handle;
+                        this.dragStart = { x, y };
+                        this.cropBoxStart = { ...this.cropBox };
+                        return;
+                    }
+                }
+
+                if (
+                    x >= this.cropBox.x && x <= this.cropBox.x + this.cropBox.width &&
+                    y >= this.cropBox.y && y <= this.cropBox.y + this.cropBox.height
+                ) {
+                    this.isDragging = true;
+                    this.dragStart = { x, y };
+                }
+            }
+
+            onMouseMove(e) {
+                if (!this.isDragging && !this.isResizing) return;
+
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                if (this.isDragging) {
+                    const dx = x - this.dragStart.x;
+                    const dy = y - this.dragStart.y;
+                    this.cropBox.x += dx;
+                    this.cropBox.y += dy;
+                    this.dragStart = { x, y };
+                    this.constrainCropBox();
+                    this.updateInputs();
+                    this.updateCropBox();
+                } else if (this.isResizing) {
+                    this.resizeCropBox(x, y);
+                }
+            }
+
+            onMouseUp() {
+                this.isDragging = false;
+                this.isResizing = false;
+                this.currentHandle = null;
+            }
+
+            resizeCropBox(x, y) {
+                const dx = x - this.dragStart.x;
+                const dy = y - this.dragStart.y;
+
+                let newBox = { ...this.cropBoxStart };
+
+                if (this.currentHandle.includes('n')) {
+                    newBox.y += dy;
+                    newBox.height -= dy;
+                }
+                if (this.currentHandle.includes('s')) {
+                    newBox.height += dy;
+                }
+                if (this.currentHandle.includes('w')) {
+                    newBox.x += dx;
+                    newBox.width -= dx;
+                }
+                if (this.currentHandle.includes('e')) {
+                    newBox.width += dx;
+                }
+
+                if (this.aspectRatio) {
+                    if (newBox.width / newBox.height > this.aspectRatio) {
+                        newBox.width = newBox.height * this.aspectRatio;
+                    } else {
+                        newBox.height = newBox.width / this.aspectRatio;
+                    }
+                }
+
+                if (newBox.width > 10 && newBox.height > 10) {
+                    this.cropBox = newBox;
+                    this.constrainCropBox();
+                    this.updateInputs();
+                    this.updateCropBox();
+                }
+            }
+
+            resetCrop() {
+                this.cropBox = {
+                    x: Math.floor(this.width * 0.1),
+                    y: Math.floor(this.height * 0.1),
+                    width: Math.floor(this.width * 0.8),
+                    height: Math.floor(this.height * 0.8)
+                };
+
+                this.aspectRatio = null;
+                document.querySelectorAll('.aspect-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('.aspect-btn[data-ratio="free"]').classList.add('active');
+
+                this.updateInputs();
+                this.updateCropBox();
+            }
+
+            async cropGif() {
+                const cropBtn = document.getElementById('cropBtn');
+                cropBtn.disabled = true;
+
+                const progressContainer = document.getElementById('progressContainer');
+                const progressFill = document.getElementById('progressFill');
+                const progressText = document.getElementById('progressText');
+
+                progressContainer.classList.add('active');
+                progressFill.style.width = '0%';
+                progressText.textContent = '处理中...';
+
+                const cropWidth = Math.round(this.cropBox.width);
+                const cropHeight = Math.round(this.cropBox.height);
+                const encoder = new GifEncoder(cropWidth, cropHeight);
+
+                for (let i = 0; i < this.frames.length; i++) {
+                    this.currentFrameIndex = i;
+                    this.render();
+
+                    const frameData = this.ctx.getImageData(this.cropBox.x, this.cropBox.y, cropWidth, cropHeight);
+                    encoder.addFrame(frameData, this.frames[i].delay * 10);
+
+                    const progress = Math.round((i + 1) / this.frames.length * 100);
+                    progressFill.style.width = `${progress}%`;
+                    progressText.textContent = `处理中... ${progress}%`;
+
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                }
+
+                const gifData = encoder.encode();
+                const blob = new Blob([gifData], { type: 'image/gif' });
+                const url = URL.createObjectURL(blob);
+
+                const previewImage = document.getElementById('previewImage');
+                previewImage.src = url;
+
+                const downloadBtn = document.getElementById('downloadBtn');
+                downloadBtn.onclick = () => {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'cropped.gif';
+                    link.click();
+                };
+
+                document.getElementById('previewSection').classList.add('active');
+
+                progressContainer.classList.remove('active');
+                cropBtn.disabled = false;
+            }
+        }
+
+        new GifCropper();
+  </script>
+</body>
+</html>

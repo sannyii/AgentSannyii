@@ -28,7 +28,7 @@ export function CtaSection() {
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.2, duration: 0.6 }}
             >
-              Coming Soon
+              即将推出
             </motion.span>
 
             <motion.h2
@@ -37,9 +37,9 @@ export function CtaSection() {
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.3, duration: 0.6 }}
             >
-              Describe the
+              描述你的
               <br />
-              <span className="text-aurora">next utility</span>
+              <span className="text-aurora">下一个工具</span>
             </motion.h2>
 
             <motion.p
@@ -48,8 +48,7 @@ export function CtaSection() {
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.4, duration: 0.6 }}
             >
-              Have an idea for a tool? Upload your requirements and let AI
-              generate a custom HTML utility tailored to your needs.
+              有工具的想法？上传需求文档，让 AI 为你生成定制的 HTML 工具。
             </motion.p>
 
             <motion.div
@@ -57,13 +56,14 @@ export function CtaSection() {
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.5, duration: 0.6 }}
             >
-              <motion.button
+              <motion.a
+                href="/create"
                 className="btn btn-primary"
                 style={{ fontSize: "1.1rem", padding: "1rem 2.5rem" }}
                 whileHover={{ scale: 1.05, boxShadow: "0 0 60px rgba(0, 245, 255, 0.4)" }}
                 whileTap={{ scale: 0.95 }}
               >
-                <span>Request Early Access</span>
+                <span>立即创建</span>
                 <svg
                   width="18"
                   height="18"
@@ -79,7 +79,7 @@ export function CtaSection() {
                     strokeLinejoin="round"
                   />
                 </svg>
-              </motion.button>
+              </motion.a>
             </motion.div>
           </div>
         </motion.div>

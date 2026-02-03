@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 export function Navigation() {
   const [scrolled, setScrolled] = useState(false);
@@ -17,9 +18,9 @@ export function Navigation() {
   }, []);
 
   const navLinks = [
-    { label: "Tools", href: "#gallery" },
-    { label: "Features", href: "#features" },
-    { label: "Request", href: "#request" },
+    { label: "工具", href: "#gallery" },
+    { label: "特性", href: "#features" },
+    { label: "创建", href: "/create" },
   ];
 
   return (
@@ -37,9 +38,9 @@ export function Navigation() {
           borderBottom: scrolled ? "1px solid rgba(255, 255, 255, 0.06)" : "none",
         }}
       >
-        <a href="#" className="nav-logo">
+        <Link href="/" className="nav-logo">
           Agent<span>Sannyii</span>
-        </a>
+        </Link>
 
         <div className="nav-links">
           {navLinks.map((link, i) => (
@@ -55,7 +56,7 @@ export function Navigation() {
             </motion.a>
           ))}
           <motion.a
-            href="#gallery"
+            href="/create"
             className="btn btn-primary"
             style={{ padding: "0.6rem 1.5rem", fontSize: "0.875rem" }}
             initial={{ opacity: 0, scale: 0.9 }}
@@ -64,7 +65,7 @@ export function Navigation() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Explore
+            创建工具
           </motion.a>
         </div>
 
@@ -72,7 +73,7 @@ export function Navigation() {
         <button
           className="mobile-menu-btn"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle menu"
+          aria-label="切换菜单"
         >
           <motion.span
             animate={mobileMenuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}

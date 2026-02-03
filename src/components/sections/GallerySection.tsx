@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { toolCards } from "@/data/tools";
+import { publicTools } from "@/data/tools";
 
 interface ToolCardItem {
   id: string;
@@ -14,17 +14,33 @@ interface ToolCardItem {
   status: "live" | "draft" | "deprecated";
 }
 
-const filters = ["All", "Image", "Video", "File", "Text", "Productivity"];
+const filters = ["全部", "图片", "视频", "文件", "文本", "效率"];
+
+const categoryMap: Record<string, string> = {
+  "全部": "All",
+  "图片": "Image",
+  "视频": "Video",
+  "文件": "File",
+  "文本": "Text",
+  "效率": "Productivity",
+};
 
 export function GallerySection() {
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-50px" });
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeFilter, setActiveFilter] = useState("全部");
+
+  const sortedTools = [...publicTools].sort((a, b) => {
+    const aLive = a.status === "live" ? 0 : 1;
+    const bLive = b.status === "live" ? 0 : 1;
+    if (aLive !== bLive) return aLive - bLive;
+    return a.title.localeCompare(b.title);
+  });
 
   const filteredTools =
-    activeFilter === "All"
-      ? toolCards
-      : toolCards.filter((tool) => tool.category === activeFilter);
+    activeFilter === "全部"
+      ? sortedTools
+      : sortedTools.filter((tool) => tool.category === categoryMap[activeFilter]);
 
   return (
     <section ref={sectionRef} id="gallery" className="gallery-section">
@@ -38,12 +54,12 @@ export function GallerySection() {
         >
           <div>
             <span className="text-eyebrow" style={{ marginBottom: "1rem", display: "block" }}>
-              Collection
+              工具集合
             </span>
             <h2 className="gallery-title">
-              EXPLORE
+              探索
               <br />
-              <span className="text-aurora">UTILITIES</span>
+              <span className="text-aurora">实用工具</span>
             </h2>
           </div>
 
@@ -104,6 +120,14 @@ function ToolCard({ tool, index }: { tool: ToolCardItem; index: number }) {
     return colors[category] || "#00f5ff";
   };
 
+  const getRuntimeLabel = (runtime: string) => {
+    return runtime === "Offline" ? "离线" : "在线";
+  };
+
+  const getStatusLabel = (status: string) => {
+    return status === "live" ? "可用" : "开发中";
+  };
+
   return (
     <motion.article
       ref={cardRef}
@@ -146,12 +170,12 @@ function ToolCard({ tool, index }: { tool: ToolCardItem; index: number }) {
                   display: "inline-block",
                 }}
               />
-              {tool.category}
+              {getRuntimeLabel(tool.runtime)}
             </span>
             <span
               className={`tool-card-status ${tool.status === "live" ? "live" : ""}`}
             >
-              {tool.status === "live" ? "Live" : "Coming Soon"}
+              {getStatusLabel(tool.status)}
             </span>
           </div>
         </div>
