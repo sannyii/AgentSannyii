@@ -8,7 +8,7 @@ export function CtaSection() {
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
 
   return (
-    <section ref={sectionRef} id="request" className="cta-section">
+    <section ref={sectionRef} id="create" className="cta-section">
       <div className="container">
         <motion.div
           className="cta-container"

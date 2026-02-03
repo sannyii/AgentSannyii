@@ -75,7 +75,7 @@ export const en = {
     comingSoon: "即将推出",
     title: "描述你的下一个工具",
     desc: "有工具的想法？上传需求文档，让 AI 为你生成定制的 HTML 工具。",
-    requestAccess: "申请抢先体验",
+    createNow: "立即创建",
   },
   
   // 页脚
